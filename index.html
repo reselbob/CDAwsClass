@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Movie Rater</title>
+</head>
+<body>
+
+<h1>Code District Aws Class Movie Rater</h1>
+
+<table>
+    <tr>
+        <td>
+            Movie
+        </td>
+        <td>
+            <select id="movie" />
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Rating
+        </td>
+        <td>
+            <select id="rating" />
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Rater Email
+        </td>
+        <td>
+            <input id="raterEmail" />
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Submit
+        </td>
+        <td>
+            <input type="submit" id="submit" onclick="submitRating()"/>
+        </td>
+    </tr>
+
+</table>
+<script>
+    function populateMovies(){
+        //make a list of movies
+        var movies = [];
+        movies.push("Gone With the Wind");
+        movies.push("Flash");
+        movies.push("Justice League Of America");
+
+        //find the movies dropdown
+        var movieElement = document.getElementById("movie");
+        //Create a null choice
+
+        var op = document.createElement('option');
+        op.innerHTML = "Select a Movie";
+        op.value = 0;
+        movieElement.append(op);
+
+        for(var i = 0; i < movies.length; i++) {
+            var option = document.createElement('option');
+            option.innerHTML = movies[i];
+            option.value = movies[i];
+            movieElement.append(option)
+        }
+
+    }
+    function populateRatings(){
+        //create rating array
+        var ratings = [];
+        ratings.push({"rating": -1, "text": "Select a rating"});
+        ratings.push({"rating": 0, "text": "Awful"});
+        ratings.push({"rating": 1, "text": "Not to Bad"});
+        ratings.push({"rating": 2, "text": "OK"});
+        ratings.push({"rating": 3, "text": "Good"});
+        ratings.push({"rating": 4, "text": "Great!"});
+
+        //find the rating dropdown
+        var ratingElement = document.getElementById("rating");
+
+        for(var i = 0; i < ratings.length; i++) {
+            var option = document.createElement('option');
+            option.innerHTML = ratings[i].text;
+            option.value = ratings[i].rating;
+            ratingElement.append(option)
+        }
+
+    }
+
+    function validateEmail(){
+
+    }
+
+    function submitRating(){
+
+        var rating = {};
+        var e = document.getElementById("rating");
+        rating.text = e.options[e.selectedIndex].text;
+        rating.value = e.options[e.selectedIndex].value;
+
+
+
+        var movie = {}
+        var e = document.getElementById("movie");
+        movie.text = e.options[e.selectedIndex].text;
+        movie.value = e.options[e.selectedIndex].value;
+
+
+        var email = document.getElementById("raterEmail").value;
+
+        var str = "I am going to send the following rating information:\n";
+        str += "Movie : " + movie.text + "\n";
+        str += "Rating text : " + rating.text + "\n";
+        str += "Rating value : " + rating.value + "\n";
+        str += "From ratier : " + email + "\n";
+
+        alert(str);
+
+        return alert("Just kidding. This feature is not yet implemented");
+
+    }
+
+    populateMovies();
+    populateRatings();
+
+</script>
+
+</body>
+</html>
