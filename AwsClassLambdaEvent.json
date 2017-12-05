@@ -1,0 +1,9 @@
+{
+    "params":{
+        "querystring": {
+            "firstName": "Test",
+            "lastName": "User",
+            "status": "Rocks!"
+        }
+    }
+}
