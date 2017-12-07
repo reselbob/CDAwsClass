@@ -1,0 +1,6 @@
+  {
+    "movieId" : $input.json('$.movieId'),
+    "movieTitle": $input.json('$.movieTitle'),
+    "userEmail": $input.json('$.userEmail'),
+    "rating": $input.json('$.rating')
+}
