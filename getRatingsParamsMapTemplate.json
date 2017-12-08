@@ -1,0 +1,4 @@
+{
+    "movieId" : "$input.params('movieId')",
+    "userEmail" : "$input.params('userEmail')"
+}
