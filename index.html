@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Movie Rater</title>
+    <script
+            src="https://code.jquery.com/jquery-3.2.1.min.js"
+            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+            crossorigin="anonymous">
+    </script>
 </head>
+
+
 <body>
 
 <h1>Code District Aws Class Movie Rater</h1>
@@ -11,10 +18,19 @@
 <table>
     <tr>
         <td>
+            Search for a Movie
+        </td>
+        <td>
+            <input id="movieSearch"/>
+            <button id="search" onclick="search('movieSearch')">Search</button>
+        </td>
+    </tr>
+    <tr>
+        <td>
             Movie
         </td>
         <td>
-            <select id="movie" />
+            <select id="movie"></select>
         </td>
     </tr>
     <tr>
@@ -22,7 +38,7 @@
             Rating
         </td>
         <td>
-            <select id="rating" />
+            <select id="rating"></select>
         </td>
     </tr>
     <tr>
@@ -30,7 +46,7 @@
             Rater Email
         </td>
         <td>
-            <input id="raterEmail" />
+            <input id="raterEmail"/>
         </td>
     </tr>
     <tr>
@@ -41,34 +57,62 @@
             <input type="submit" id="submit" onclick="submitRating()"/>
         </td>
     </tr>
+    <tr>
+        <td>
+            Your Rating ID
+        </td>
+        <td>
+            <div id="ratingId"></div>
+        </td>
+    </tr>
 
 </table>
 <script>
-    function populateMovies(){
-        //make a list of movies
-        var movies = [];
-        movies.push("Gone With the Wind");
-        movies.push("Flash");
-        movies.push("Justice League Of America");
 
+    var API_URL = 'https://opna2oxd2e.execute-api.us-east-1.amazonaws.com/Test';
+    //var API_URL = 'YOUR_TEST_DEPLOY_URI';
+
+    function search(dataId) {
+        var searchData = document.getElementById(dataId).value;
+        var uri = encodeURI(API_URL + '/movies?search=' + searchData);
+        alert('I am searching: ' + uri);
+        $.get(uri, function (data) {
+            populateMovies(data);
+        });
+    }
+
+    function removeOptions(selectbox)
+    {
+        var i;
+        for(i = selectbox.options.length - 1 ; i >= 0 ; i--)
+        {
+            selectbox.remove(i);
+        }
+    }
+    function populateMovies(data) {
+        //make a list of movies
+        var movies = data;
         //find the movies dropdown
         var movieElement = document.getElementById("movie");
-        //Create a null choice
+        removeOptions(movieElement);
 
         var op = document.createElement('option');
-        op.innerHTML = "Select a Movie";
+        op.innerHTML = "Select  a Movie";
         op.value = 0;
-        movieElement.append(op);
+        movieElement.appendChild(op);
 
-        for(var i = 0; i < movies.length; i++) {
+
+
+        for (var i = 0; i < movies.length; i++) {
             var option = document.createElement('option');
-            option.innerHTML = movies[i];
-            option.value = movies[i];
-            movieElement.append(option)
+            option.innerHTML = movies[i].title;
+            option.value = movies[i].id;
+            movieElement.appendChild(option)
         }
 
     }
-    function populateRatings(){
+
+    function populateRatings() {
         //create rating array
         var ratings = [];
         ratings.push({"rating": -1, "text": "Select a rating"});
@@ -77,24 +121,24 @@
         ratings.push({"rating": 2, "text": "OK"});
         ratings.push({"rating": 3, "text": "Good"});
         ratings.push({"rating": 4, "text": "Great!"});
+        ratings.push({"rating": 4, "text": "Super  Great!"});
 
         //find the rating dropdown
         var ratingElement = document.getElementById("rating");
 
-        for(var i = 0; i < ratings.length; i++) {
+        for (var i = 0; i < ratings.length; i++) {
             var option = document.createElement('option');
             option.innerHTML = ratings[i].text;
             option.value = ratings[i].rating;
-            ratingElement.append(option)
+            ratingElement.appendChild(option)
         }
+    }
+
+    function validateEmail() {
 
     }
 
-    function validateEmail(){
-
-    }
-
-    function submitRating(){
+    function submitRating() {
 
         var rating = {};
         var e = document.getElementById("rating");
@@ -102,28 +146,30 @@
         rating.value = e.options[e.selectedIndex].value;
 
 
-
-        var movie = {}
+        var submission = {}
         var e = document.getElementById("movie");
-        movie.text = e.options[e.selectedIndex].text;
-        movie.value = e.options[e.selectedIndex].value;
-
+        submission.movieTitle = e.options[e.selectedIndex].text;
+        submission.movieId = e.options[e.selectedIndex].value;
 
         var email = document.getElementById("raterEmail").value;
+        submission.userEmail = email;
+        submission.rating = rating.value;
 
-        var str = "I am going to send the following rating information:\n";
-        str += "Movie : " + movie.text + "\n";
-        str += "Rating text : " + rating.text + "\n";
-        str += "Rating value : " + rating.value + "\n";
-        str += "From ratier : " + email + "\n";
-
-        alert(str);
-
-        return alert("Just kidding. This feature is not yet implemented");
-
+        var uri = encodeURI(API_URL + '/ratings');
+        $.ajax({
+            url:uri,
+            type:"POST",
+            data: JSON.stringify(submission),
+            contentType:"application/json; charset=utf-8",
+            dataType:"json",
+            success: function(data){
+                alert( "ata Loaded: " + JSON.stringify(data) );
+                document.getElementById("ratingId").innerHTML = data.ratingId;
+            }
+        });
     }
 
-    populateMovies();
+    //populateMovies();
     populateRatings();
 
 </script>
