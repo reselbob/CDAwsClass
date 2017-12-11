@@ -8,6 +8,10 @@
             integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
             crossorigin="anonymous">
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.17.0/dist/jquery.validate.js" type="application/javascript"></script>
+    <style>
+        #errorArea{color:red}
+    </style>
 </head>
 
 
@@ -46,7 +50,7 @@
             Rater Email
         </td>
         <td>
-            <input id="raterEmail"/>
+            <input id="raterEmail"/><div id="errorArea"></div>
         </td>
     </tr>
     <tr>
@@ -65,6 +69,14 @@
             <div id="ratingId"></div>
         </td>
     </tr>
+</table>
+<table id="myRatings" >
+    <tr>
+        <th>Movie</th>
+        <th>Rating</th>
+        <th>Rater</th>
+
+    </tr>
 
 </table>
 <script>
@@ -72,10 +84,24 @@
     var API_URL = 'https://opna2oxd2e.execute-api.us-east-1.amazonaws.com/Test';
     //var API_URL = 'YOUR_TEST_DEPLOY_URI';
 
+    function populateRatingTable(data){
+
+        //alert(JSON.stringify(data));
+        var tbl = document.getElementById("myRatings");
+        data.forEach(function(row){
+            var str = '<td>' + row.movieTitle.S + '</td>';
+            str += '<td>' + row.rating.N + '</td>'
+            str += '<td>' + row.userEmail.S + '</td>'
+            $("#myRatings").last().append('<tr>' + str + '</tr>');
+        });
+    }
+
+
     function search(dataId) {
+        cleanupUi();
         var searchData = document.getElementById(dataId).value;
         var uri = encodeURI(API_URL + '/movies?search=' + searchData);
-        alert('I am searching: ' + uri);
+        //alert('I am searching: ' + uri);
         $.get(uri, function (data) {
             populateMovies(data);
         });
@@ -88,6 +114,15 @@
         {
             selectbox.remove(i);
         }
+    }
+
+    function cleanupUi(){
+        removeOptions($('#movie')[0]);
+        $('#raterEmail')[0].value = '';
+        $('#rating option:selected').prop('selected', false);
+        $('#rating option:first').prop('selected", "selected');
+        $('#ratingId')[0].innerText = '';
+
     }
     function populateMovies(data) {
         //make a list of movies
@@ -117,7 +152,7 @@
         var ratings = [];
         ratings.push({"rating": -1, "text": "Select a rating"});
         ratings.push({"rating": 0, "text": "Awful"});
-        ratings.push({"rating": 1, "text": "Not to Bad"});
+        ratings.push({"rating": 1, "text": "Not too Bad"});
         ratings.push({"rating": 2, "text": "OK"});
         ratings.push({"rating": 3, "text": "Good"});
         ratings.push({"rating": 4, "text": "Great!"});
@@ -134,11 +169,28 @@
         }
     }
 
-    function validateEmail() {
+    function isEmailValid(mail)
+    {
+        if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(mail))
+        {
+            return (true)
+        }
+        return (false)
+    }
 
+    function validateEmail() {
+        var email =  $("#raterEmail")[0].value;
+        if(!isEmailValid(email)){
+            $("#errorArea")[0].innerHTML = 'Bad email address';
+            return false;
+        }else{
+            $("#errorArea")[0].innerHTML = '';
+        }
+        return true;
     }
 
     function submitRating() {
+        if(!validateEmail()) return;
 
         var rating = {};
         var e = document.getElementById("rating");
@@ -163,8 +215,13 @@
             contentType:"application/json; charset=utf-8",
             dataType:"json",
             success: function(data){
-                alert( "ata Loaded: " + JSON.stringify(data) );
+                //alert( "ata Loaded: " + JSON.stringify(data) );
                 document.getElementById("ratingId").innerHTML = data.ratingId;
+                var uri = encodeURI(API_URL + '/ratings?userEmail=' + submission.userEmail);
+                //alert('I am searching: ' + uri);
+                $.get(uri, function (data) {
+                    populateRatingTable(data);
+                });
             }
         });
     }
