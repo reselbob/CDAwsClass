@@ -63,11 +63,14 @@ exports.handler = function(event, context) {
             console.log({message: 'Data written.',rating });
             sendRatingToTopic(rating, function(err, data){
                 if (err) {
-                console.log({message: 'Post to topic failed',rating, err });
-                context.fail(JSON.stringify({message: 'Post to topic failed',rating, err}));
-        }
-            })
-            context.done(null,{ratingId});
+                    console.log({message: 'Post to topic failed',rating, err });
+                    context.fail(JSON.stringify({message: 'Post to topic failed',rating, err}));
+                }
+                else{
+                    console.log({message: 'success', data});  
+                    context.done(null,{ratingId});
+                }
+            }); 
         }
     });
 };
