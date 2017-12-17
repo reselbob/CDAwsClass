@@ -1,8 +1,3 @@
-// create an IAM Lambda role with access to dynamodb
-// Launch Lambda in the same region as your dynamodb region
-// (here: us-east-1)
-// dynamodb table with hash key = user and range key = datetime
-
 console.log('Loading event');
 var AWS = require('aws-sdk');
 var dynamodb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
@@ -26,24 +21,29 @@ function validateEvent(event){
 exports.handler = function(event, context) {
     const tableName = "Ratings";
     const ratingId = context.awsRequestId;
-    const errors = validateEvent(event)
+    console.log({message:'accepting data', data:event});
+    const errors = validateEvent(event);
+   
     if(errors.length > 0){
         console.log({validationError: errors})
-        context.done(JSON.stringify({validationError: errors}));
+        context.fail(new Error(JSON.stringify({validationError: errors})));
     }
     
-    dynamodb.putItem({
-        "TableName": tableName,
-        "Item" : {
+    const  itm = {
             "movieId": {"S": event.movieId },
             "movieTitle": {"S":event. movieTitle },
             "userEmail": {"S": event.userEmail},
             "rating": {"N": event.rating},
             "ratingId": {"S": ratingId},
-        }
+        };
+    console.log({message: 'Before Submit', data:itm});
+    
+    dynamodb.putItem({
+        "TableName": tableName,
+        "Item" : itm
     }, function(err, data) {
         if (err) {
-            context.done('error','putting item into dynamodb failed: '+ err);
+            context.fail(new Error('putting item into dynamodb failed: '+ err));
         }
         else {
             const msg = 'great success: '+JSON.stringify(data);
