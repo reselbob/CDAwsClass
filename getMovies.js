@@ -1,3 +1,5 @@
+const http = require('http');
+
 exports.handler = (event, context, callback) => {
     if(!process.env.API_KEY) throw new Error('The required Environment Var, API_KEY is not set');
     const config = event;
