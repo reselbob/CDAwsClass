@@ -1,0 +1,5 @@
+{
+    "title" : "$input.params('title')",
+    "id" : "$input.params('id')",
+    "search" : "$input.params('search')"
+}
