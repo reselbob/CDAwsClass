@@ -1,17 +1,53 @@
-exports.handler = (event, context, callback) => {
-    if(!process.env.API_KEY) throw new Error('The required Environment Var, API_KEY is not set');
+exports.handler = (event, context) => {
+    //We'll need the HTTP package to call the OMDB API
+    const http = require('http');
+
+    //helpder function that combines log and context.fail()
+    function errorExit(dataObject){
+        const str = JSON.stringify(dataObject);
+        console.log(str);
+        context.fail(str); 
+    }
+    
+// check to see if the OMDB API key is available
+    if(!process.env.API_KEY) 
+    {
+        //Leave the handler
+        const err = new Error('A required internal parameter is not present');
+        const obj = {type: 'Internal parameter Error', data: err};
+        errorExit(obj);
+    }
     const config = event;
-    console.log ({config: config});
-    if(!config) throw new Error('No configuration defined');
+    console.log ({config});
+    if(!config) 
+        {
+            //Leave the handler
+            const err = new Error('A required configuration object is not present');
+            const obj = {type: 'Configuration Error', data: err};
+            errorExit(obj);    
+        }
     let param;
     if(config.search ) param = `s=${config.search}&type=movie&page=100`;
     if(config.id ) param = `i=${config.id}`;
     if(config.title ) param = `t=${config.title}`;
-    if(!param) throw new Error('No proper configuration object define.');
+    if(!param)
+        {
+            //Leave the handler
+            const err = new Error('A required retrieval parameterization object is not set');
+            const obj = {type: 'Paramterization Error', data: err};   
+            errorExit(obj);  
+        }
 
+    //Set the parameterized URL for the OMDB API
     const pm = encodeURI(param);
     const url = `http://www.omdbapi.com/?${pm}&apikey=${process.env.API_KEY}&r=json`;
     
+    /*
+    This function maps data returned from the title retreival
+    on the OMDB API onto generic return object. OMBD returns
+    searches data based on title in a structure that is different
+    differnt search
+    */
     function mapTitleResponse(data){
     if(!data || data.Error) return;
     const model = {};
@@ -22,7 +58,11 @@ exports.handler = (event, context, callback) => {
     model.studio = data.Production;
     return model;
     }
-    
+
+    /*
+    Maps the object returned from the OMBD general
+    searchon to the movide object used by MovieRater
+    */
     function mapSearchResponse(data){
         const arr= [];
         if(Array.isArray(data)){
@@ -34,10 +74,11 @@ exports.handler = (event, context, callback) => {
                 if(item.Year) model.releaseDate = item.Year;
                 arr.push(model);
             });
-        }
+        } 
         return arr;
     }    
     
+    //Get data from OMDB
     http.get(url, (res) => {
         const {statusCode} = res;
         const contentType = res.headers['content-type'];
@@ -50,7 +91,8 @@ exports.handler = (event, context, callback) => {
                 `Expected application/json but received ${contentType}`);
         }
         if (error) {
-            console.error(JSON.stringify(error.message));
+            const obj = {type: "HTTP GET Error", data: error};
+            console.log(JSON.stringify(obj));
             // consume response data to free up memory
             res.resume();
             return;
@@ -59,9 +101,11 @@ exports.handler = (event, context, callback) => {
         res.setEncoding('utf8');
         let rawData = '';
         res.on('data', (chunk) => {
+            //Called as data keeps comingin from the GET request
             rawData += chunk;
         });
         res.on('end', () => {
+            //Event that gets called at the end of the data streaming from the GET request
             try {
                 const parsedData = JSON.parse(rawData);
                 let data;
@@ -70,13 +114,16 @@ exports.handler = (event, context, callback) => {
                 }else{
                     data = mapTitleResponse(parsedData);
                 }
-                console.log({responseData: data});
-                callback(null, data);
-            } catch (e) {
-                console.error(JSON.stringify(e.message));
+                console.log({type: 'HTTP GET Response', responseData: data});
+                context.done(null, data);
+            } catch (err) {
+                const obj = {type:'HTTP GET Respone Parse Error', data: err};
+                errorExit(obj);
             }
         });
-    }).on('error', (e) => {
-        console.error(`Got error: ${e.message}`);
+    }).on('error', (err) => {
+        //Called when an Error is encountered in the HTTP GET request
+        const obj = {type:'HTTP GET Respone Error', data: err};
+        errorExit(obj);
     });
 };
